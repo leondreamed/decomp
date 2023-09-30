@@ -1,29 +1,29 @@
 import fs from "fs";
-import path from "path";
 import isJpg from "is-jpg";
 import { pathExists } from "path-exists";
 import { rimraf } from "rimraf";
 import test from "ava";
 import m from "./index.js";
+import { join, dirname } from "desm";
 
 test.serial.afterEach(
   "ensure decompressed files and directories are cleaned up",
   async () => {
-    await rimraf(path.join(__dirname, "directory"));
-    await rimraf(path.join(__dirname, "dist"));
-    await rimraf(path.join(__dirname, "example.txt"));
-    await rimraf(path.join(__dirname, "file.txt"));
-    await rimraf(path.join(__dirname, "edge_case_dots"));
-    await rimraf(path.join(__dirname, "symlink"));
-    await rimraf(path.join(__dirname, "test.jpg"));
+    await rimraf(join(import.meta.url, "directory"));
+    await rimraf(join(import.meta.url, "dist"));
+    await rimraf(join(import.meta.url, "example.txt"));
+    await rimraf(join(import.meta.url, "file.txt"));
+    await rimraf(join(import.meta.url, "edge_case_dots"));
+    await rimraf(join(import.meta.url, "symlink"));
+    await rimraf(join(import.meta.url, "test.jpg"));
   }
 );
 
 test("extract file", async (t) => {
-  const tarFiles = await m(path.join(__dirname, "fixtures", "file.tar"));
-  const tarbzFiles = await m(path.join(__dirname, "fixtures", "file.tar.bz2"));
-  const targzFiles = await m(path.join(__dirname, "fixtures", "file.tar.gz"));
-  const zipFiles = await m(path.join(__dirname, "fixtures", "file.zip"));
+  const tarFiles = await m(join(import.meta.url, "fixtures", "file.tar"));
+  const tarbzFiles = await m(join(import.meta.url, "fixtures", "file.tar.bz2"));
+  const targzFiles = await m(join(import.meta.url, "fixtures", "file.tar.gz"));
+  const zipFiles = await m(join(import.meta.url, "fixtures", "file.zip"));
 
   t.is(tarFiles[0].path, "test.jpg");
   t.true(isJpg(tarFiles[0].data));
@@ -37,19 +37,19 @@ test("extract file", async (t) => {
 
 test("extract file using buffer", async (t) => {
   const tarBuf = await fs.promises.readFile(
-    path.join(__dirname, "fixtures", "file.tar")
+    join(import.meta.url, "fixtures", "file.tar")
   );
   const tarFiles = await m(tarBuf);
   const tarbzBuf = await fs.promises.readFile(
-    path.join(__dirname, "fixtures", "file.tar.bz2")
+    join(import.meta.url, "fixtures", "file.tar.bz2")
   );
   const tarbzFiles = await m(tarbzBuf);
   const targzBuf = await fs.promises.readFile(
-    path.join(__dirname, "fixtures", "file.tar.gz")
+    join(import.meta.url, "fixtures", "file.tar.gz")
   );
   const targzFiles = await m(targzBuf);
   const zipBuf = await fs.promises.readFile(
-    path.join(__dirname, "fixtures", "file.zip")
+    join(import.meta.url, "fixtures", "file.zip")
   );
   const zipFiles = await m(zipBuf);
 
@@ -61,35 +61,42 @@ test("extract file using buffer", async (t) => {
 
 test.serial("extract file to directory", async (t) => {
   const files = await m(
-    path.join(__dirname, "fixtures", "file.tar"),
-    __dirname
+    join(import.meta.url, "fixtures", "file.tar"),
+    dirname(import.meta.url)
   );
 
   t.is(files[0].path, "test.jpg");
   t.true(isJpg(files[0].data));
-  t.true(await pathExists(path.join(__dirname, "test.jpg")));
+  t.true(await pathExists(join(import.meta.url, "test.jpg")));
 });
 
 test.serial("extract symlink", async (t) => {
-  await m(path.join(__dirname, "fixtures", "symlink.tar"), __dirname, {
-    strip: 1,
-  });
+  await m(
+    join(import.meta.url, "fixtures", "symlink.tar"),
+    dirname(import.meta.url),
+    {
+      strip: 1,
+    }
+  );
   t.is(
-    await fs.promises.realpath(path.join(__dirname, "symlink")),
-    path.join(__dirname, "file.txt")
+    await fs.promises.realpath(join(import.meta.url, "symlink")),
+    join(import.meta.url, "file.txt")
   );
 });
 
 test.serial("extract directory", async (t) => {
-  await m(path.join(__dirname, "fixtures", "directory.tar"), __dirname);
-  t.true(await pathExists(path.join(__dirname, "directory")));
+  await m(
+    join(import.meta.url, "fixtures", "directory.tar"),
+    dirname(import.meta.url)
+  );
+  t.true(await pathExists(join(import.meta.url, "directory")));
 });
 
 test("strip option", async (t) => {
-  const zipFiles = await m(path.join(__dirname, "fixtures", "strip.zip"), {
+  const zipFiles = await m(join(import.meta.url, "fixtures", "strip.zip"), {
     strip: 1,
   });
-  const tarFiles = await m(path.join(__dirname, "fixtures", "strip.tar"), {
+  const tarFiles = await m(join(import.meta.url, "fixtures", "strip.tar"), {
     strip: 1,
   });
 
@@ -100,7 +107,7 @@ test("strip option", async (t) => {
 });
 
 test("filter option", async (t) => {
-  const files = await m(path.join(__dirname, "fixtures", "file.tar"), {
+  const files = await m(join(import.meta.url, "fixtures", "file.tar"), {
     filter: (x) => x.path !== "test.jpg",
   });
 
@@ -108,7 +115,7 @@ test("filter option", async (t) => {
 });
 
 test("map option", async (t) => {
-  const files = await m(path.join(__dirname, "fixtures", "file.tar"), {
+  const files = await m(join(import.meta.url, "fixtures", "file.tar"), {
     map: (x) => {
       x.path = `unicorn-${x.path}`;
       return x;
@@ -120,15 +127,15 @@ test("map option", async (t) => {
 
 test.serial("set mtime", async (t) => {
   const files = await m(
-    path.join(__dirname, "fixtures", "file.tar"),
-    __dirname
+    join(import.meta.url, "fixtures", "file.tar"),
+    dirname(import.meta.url)
   );
-  const stat = await fs.promises.stat(path.join(__dirname, "test.jpg"));
+  const stat = await fs.promises.stat(join(import.meta.url, "test.jpg"));
   t.deepEqual(files[0].mtime, stat.mtime);
 });
 
 test("return emptpy array if no plugins are set", async (t) => {
-  const files = await m(path.join(__dirname, "fixtures", "file.tar"), {
+  const files = await m(join(import.meta.url, "fixtures", "file.tar"), {
     plugins: [],
   });
   t.is(files.length, 0);
@@ -137,7 +144,7 @@ test("return emptpy array if no plugins are set", async (t) => {
 test.serial("throw when a location outside the root is given", async (t) => {
   await t.throwsAsync(
     async () => {
-      await m(path.join(__dirname, "fixtures", "slipping.tar.gz"), "dist");
+      await m(join(import.meta.url, "fixtures", "slipping.tar.gz"), "dist");
     },
     { message: /Refusing/ }
   );
@@ -148,7 +155,7 @@ test.serial(
   async (t) => {
     await t.throwsAsync(
       async () => {
-        await m(path.join(__dirname, "fixtures", "slip.zip"), "dist");
+        await m(join(import.meta.url, "fixtures", "slip.zip"), "dist");
       },
       { message: /Refusing/ }
     );
@@ -160,7 +167,7 @@ test.serial(
   async (t) => {
     await t.throwsAsync(
       async () => {
-        await m(path.join(__dirname, "fixtures", "slip2.zip"), "dist");
+        await m(join(import.meta.url, "fixtures", "slip2.zip"), "dist");
       },
       { message: /Refusing/ }
     );
@@ -173,7 +180,7 @@ test.serial(
     await t.throwsAsync(
       async () => {
         await m(
-          path.join(__dirname, "fixtures", "slipping_directory.tar.gz"),
+          join(import.meta.url, "fixtures", "slipping_directory.tar.gz"),
           "dist"
         );
       },
@@ -186,8 +193,8 @@ test.serial(
   "allows filenames and directories to be written with dots in their names",
   async (t) => {
     const files = await m(
-      path.join(__dirname, "fixtures", "edge_case_dots.tar.gz"),
-      __dirname
+      join(import.meta.url, "fixtures", "edge_case_dots.tar.gz"),
+      dirname(import.meta.url)
     );
     t.is(files.length, 6);
     t.deepEqual(
@@ -206,7 +213,7 @@ test.serial(
 
 test.serial("allows top-level file", async (t) => {
   const files = await m(
-    path.join(__dirname, "fixtures", "top_level_example.tar.gz"),
+    join(import.meta.url, "fixtures", "top_level_example.tar.gz"),
     "dist"
   );
   t.is(files.length, 1);
@@ -218,7 +225,7 @@ test.serial(
   async (t) => {
     await t.throwsAsync(
       async () => {
-        await m(path.join(__dirname, "fixtures", "slip3.zip"), "/tmp/dist");
+        await m(join(import.meta.url, "fixtures", "slip3.zip"), "/tmp/dist");
       },
       { message: /Refusing/ }
     );
