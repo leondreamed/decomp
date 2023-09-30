@@ -1,7 +1,7 @@
 {
 	"name": "decomp",
 	"type": "module",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"main": "./index.js",
 	"types": "./index.d.ts",
 	"description": "Extracting archives made easy",
@@ -20,7 +20,7 @@
 	},
 	"files": [
 		"index.js",
-		"index.d.js"
+		"index.d.ts"
 	],
 	"keywords": [
 		"bz2",
