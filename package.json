@@ -1,7 +1,8 @@
 {
 	"name": "decomp",
 	"type": "module",
-	"version": "0.0.0",
+	"version": "0.1.0",
+	"main": "./index.js",
 	"description": "Extracting archives made easy",
 	"license": "MIT",
 	"repository": "kevva/decompress",
